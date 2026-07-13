@@ -1,0 +1,52 @@
+# The Photos API as an OpenChoreo Component (deploy-from-image path).
+# Two resources: the Component (what/how to deploy) and the Workload (the runtime contract).
+# Docs: https://openchoreo.dev/docs/developer-guide/projects-and-components/creating-a-component/
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: photos-api
+  namespace: default
+  annotations:
+    openchoreo.dev/display-name: "Photos API"
+    openchoreo.dev/description: "Browse photos and order licensed copies"
+spec:
+  owner:
+    projectName: authentic-photos
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/service
+  autoDeploy: true            # auto-create a release and deploy to the first environment (development)
+---
+apiVersion: openchoreo.dev/v1alpha1
+kind: Workload
+metadata:
+  name: photos-api-workload
+  namespace: default
+spec:
+  owner:
+    projectName: authentic-photos
+    componentName: photos-api
+  container:
+    image: "authentic-photos/photos-api:0.1.0"   # locally built, imported into k3d (see build script)
+    env:
+      - key: PORT
+        value: "8080"
+      - key: APP_ENV
+        value: "development"
+      # --- DB connection (dev). Plain values for now; we move secrets to a proper
+      #     Secret/ReleaseBinding later. dev API -> dev DB. ---
+      - key: DB_HOST
+        value: "mysql.authentic-photos-data-dev.svc.cluster.local"
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        value: "authphotos"
+      - key: DB_USER
+        value: "authphotos_app"
+      - key: DB_PASSWORD
+        value: "dev-apppw-change-me"
+  endpoints:
+    api:
+      type: HTTP
+      port: 8080
+      visibility: [external]    # exposed via the gateway; we add OAuth in Phase 4

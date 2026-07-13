@@ -1,0 +1,18 @@
+# OpenChoreo Project: the logical boundary that groups our components
+# (API service, web app) and links them to a deployment pipeline.
+# Docs: https://openchoreo.dev/docs/developer-guide/projects-and-components/creating-a-project/
+#
+# For now we reference the built-in "default" pipeline (development -> staging -> production).
+# In Phase 6 we switch this to a custom dev -> qa -> prod pipeline.
+apiVersion: openchoreo.dev/v1alpha1
+kind: Project
+metadata:
+  name: authentic-photos
+  namespace: default
+  annotations:
+    openchoreo.dev/display-name: "Authentic Photos"
+    openchoreo.dev/description: "Online store selling licensed authentic photos: MySQL + subscribable OAuth API + web app"
+spec:
+  deploymentPipelineRef:
+    kind: DeploymentPipeline
+    name: default

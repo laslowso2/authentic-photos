@@ -1,0 +1,3 @@
+# MOVED. The database now uses kustomize base + per-environment overlays.
+# See: db/base/ and db/overlays/{dev,qa,prod}/
+# You can delete this db/k8s/ folder.

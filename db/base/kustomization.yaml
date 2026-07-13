@@ -1,0 +1,21 @@
+# Base MySQL definition, shared by every environment.
+# Overlays (dev/qa/prod) set the namespace and the credentials.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - 30-service.yaml
+  - 40-statefulset.yaml
+
+# Build the init ConfigMap from the canonical SQL files. Same schema/seed everywhere.
+configMapGenerator:
+  - name: mysql-initdb
+    files:
+      - schema.sql
+      - seed.sql
+
+# Keep generated names stable (mysql-initdb / mysql-credentials) so the StatefulSet's
+# references stay valid. (Trade-off: editing SQL won't auto-trigger a rollout; that's
+# fine here because MySQL only runs init SQL on an empty volume anyway.)
+generatorOptions:
+  disableNameSuffixHash: true

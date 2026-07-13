@@ -1,0 +1,20 @@
+# QA database overlay -> namespace authentic-photos-data-qa
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: authentic-photos-data-qa
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+secretGenerator:
+  - name: mysql-credentials
+    literals:
+      - MYSQL_ROOT_PASSWORD=qa-rootpw-change-me
+      - MYSQL_DATABASE=authphotos
+      - MYSQL_USER=authphotos_app
+      - MYSQL_PASSWORD=qa-apppw-change-me
+
+generatorOptions:
+  disableNameSuffixHash: true

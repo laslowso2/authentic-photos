@@ -1,0 +1,12 @@
+# Build artifacts (rebuilt by Docker / npm)
+api/node_modules/
+api/dist/
+api/npm-debug.log
+
+# Local output
+*.log
+phase0-output.txt
+phase0b-output.txt
+
+# OS
+.DS_Store

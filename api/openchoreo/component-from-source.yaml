@@ -1,0 +1,33 @@
+# Phase 3: the Photos API built FROM SOURCE by OpenChoreo (replaces the deploy-from-image Component).
+# OpenChoreo clones the repo, builds the image with the Dockerfile, and generates the Workload
+# from api/workload.yaml. No separate Workload CR here — the build produces it.
+# __GIT_URL__ is replaced by deploy-phase3.sh with your repo URL.
+# Docs: https://openchoreo.dev/docs/developer-guide/workflows/ci/overview/
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: photos-api
+  namespace: default
+  annotations:
+    openchoreo.dev/display-name: "Photos API"
+    openchoreo.dev/description: "Browse photos and order licensed copies (built from source)"
+spec:
+  owner:
+    projectName: authentic-photos
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/service
+  autoDeploy: true      # deploy the built image automatically
+  autoBuild: true       # enable webhook auto-build (needs a public endpoint/tunnel; harmless locally)
+  workflow:
+    kind: ClusterWorkflow
+    name: dockerfile-builder
+    parameters:
+      repository:
+        url: "__GIT_URL__"
+        revision:
+          branch: "main"
+        appPath: "/api"
+      docker:
+        context: "/api"
+        filePath: "/api/Dockerfile"

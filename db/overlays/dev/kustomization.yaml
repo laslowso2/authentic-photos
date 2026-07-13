@@ -1,0 +1,22 @@
+# DEV database overlay -> namespace authentic-photos-data-dev
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: authentic-photos-data-dev
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+# DEV credentials. Demo values — change them. Same key names in every env so the
+# StatefulSet is identical; only the values differ per environment.
+secretGenerator:
+  - name: mysql-credentials
+    literals:
+      - MYSQL_ROOT_PASSWORD=dev-rootpw-change-me
+      - MYSQL_DATABASE=authphotos
+      - MYSQL_USER=authphotos_app
+      - MYSQL_PASSWORD=dev-apppw-change-me
+
+generatorOptions:
+  disableNameSuffixHash: true

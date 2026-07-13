@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: authentic-photos-data-prod
+  labels:
+    app.kubernetes.io/part-of: authentic-photos
+    openchoreo.dev/environment: production
