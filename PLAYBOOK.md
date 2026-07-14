@@ -4,7 +4,7 @@
 Everything is here: architecture, the facts about this specific cluster, every command, every script, and every file's full contents (Appendix B). If you delete the folder, you can rebuild it from this document alone.
 
 - **Last updated:** for OpenChoreo v1.1.x on local k3d (Colima).
-- **What's built so far:** Phase 0 (discovery), Phase 1 (Project + MySQL per env), Phase 2 (Node/TS API). Phases 3–6 are outlined at the end.
+- **What's built so far:** Phase 0 (discovery), Phase 1 (Project + MySQL per env), Phase 2 (Node/TS API), Phase 3 (CI from Git — OpenChoreo builds & deploys), Phase 4 (OAuth-protected API + external subscription), Phase 6 Part A+B (qa env, dev→qa→prod pipeline, same release promoted across dev/qa/prod with per-env DB + replicas). Phase 4c (local rate limiting, 250 req/min) DONE. Remaining: Phase 6 Part C (autoscaling), Phase 5 (web app + login).
 - **Delivery model:** manifests + code + scripts live in `~/Documents/Claude/OpenChoreo/authentic-photos/`. You run the commands against your own cluster.
 
 ---
@@ -160,10 +160,49 @@ The build script: `docker build` the image → `k3d image import authentic-photo
 
 ---
 
-## 8. Phases 3–6 (planned)
+## 8. Phase 3 — CI from Git (DONE)
 
-- **Phase 3 — CI from Git.** Push `api/` to a Git repo; switch the Component to build-from-source with the `dockerfile-builder` ClusterWorkflow + `autoBuild: true`; a `git push` triggers a WorkflowRun that builds and deploys.
-- **Phase 4 — Publish API + subscription + OAuth.** Expose the API through kgateway; register an OAuth client in Thunder (client-credentials); enforce JWT validation on the route so external subscribers call it with a token.
+Push `api/` to a **public GitHub repo**; switch the Component to build-from-source (`component-from-source.yaml`, `dockerfile-builder`, `appPath: /api`); trigger builds with a `WorkflowRun` (`deploy-phase3.sh <repo-url>`). OpenChoreo clones → builds → publishes to its registry → auto-deploys. The runtime contract (endpoint + env) comes from `api/workload.yaml`. See `PHASE3.md`.
+
+**Gotcha we hit — registry DNS (important):** the build's `publish-image` step pushes to `host.k3d.internal:10082`, but pods can't resolve that name — and k3s **reverts** edits to the coredns `NodeHosts` field. Fix by aliasing it in the reconcile-proof `coredns-custom` configmap:
+```bash
+kubectl patch configmap coredns-custom -n kube-system --type merge \
+  -p '{"data":{"k3dhost.override":"rewrite stop {\n  name exact host.k3d.internal choreo-host\n  answer auto\n}\n"}}'
+kubectl delete pod -n kube-system -l k8s-app=kube-dns
+```
+This is baked into `fix-registry-dns.sh` and made permanent in `restart-choreo.sh`. Verify with: pod `nslookup host.k3d.internal` → 172.18.0.1 and `nc -zv host.k3d.internal 10082` → open. Confirm the deploy flipped over: the running pod's image should read `host.k3d.internal:10082/default-authentic-photos-photos-api:v1-...` (via `verify-phase3.sh`).
+
+Extra Phase-3 scripts: `push-to-github.sh`, `deploy-phase3.sh`, `verify-phase3.sh`, `fix-registry-dns.sh`, `diagnose-registry.sh`, `get-build-logs.sh`.
+
+## 9. Phase 4 — OAuth-protected API + subscription (DONE)
+
+External apps subscribe by registering a `client_credentials` app in **Thunder**, then call the API with a Bearer JWT that **kgateway** validates at the route. Flow: `app → Thunder /oauth2/token → JWT → gateway (validate issuer+aud+signature via JWKS) → API`. Result: **401 without token, 200 with token**. See `PHASE4.md`.
+
+Scripts: `register-subscriber.sh`, `get-token.sh`, `deploy-phase4.sh`, `test-phase4.sh`; manifests `api/openchoreo/{thunder-subscriber-app.json, gateway-jwt.yaml}`.
+
+**Phase 4b — per-environment isolation (DONE):** one OAuth client per env (`photos-subscriber-dev/qa/prod`), and the JWT policy applied to **all three routes**, each validating only its own audience (client_id). Result matrix: own-env token → 200, wrong-env token → 403, no token → 401. A dev token is refused (403) by prod. Scripts: `register-subscribers.sh`, `deploy-phase4.sh` (now loops all routes), `test-oauth-isolation.sh`. Access kit: `api-access/` (Postman collection + curl, per-env creds). Real-world caveat: isolation ultimately depends on **secret custody** (prod secret not shared) + ideally a separate IdP/cluster for prod; our demo secrets are plaintext.
+
+**Phase 4c — local rate limiting (throttling) (DONE — verified: burst of 300 → 266×200 then 34×429):** a kgateway `TrafficPolicy` with a **local token bucket** caps each Photos API route at **250 req/min** (`rateLimit.local.tokenBucket`: maxTokens 250, tokensPerFill 250, fillInterval 60s). Attached as a second TrafficPolicy on the route alongside the JWT policy (kgateway merges). Apply with `deploy-ratelimit.sh` (prints the live `rateLimit` schema + server-dry-runs before applying), verify with `test-ratelimit.sh` (bursts 300 requests → ~250×200 then 429). Manifest: `api/openchoreo/rate-limit.yaml`.
+- **Local vs global:** *local* is enforced **per gateway replica** (effective cap = 250 × replicas) and needs no extra infra — good for basic protection. **Per-consumer / subscription-tier throttling** (WSO2-APIM-style Gold/Silver quotas keyed on the JWT `client_id`) requires **global** rate limiting = a `RateLimit` GatewayExtension pointing at an external Envoy ratelimit service + Redis-style store, which must be deployed separately (not part of this build).
+- OpenChoreo has **no bundled WSO2-APIM equivalent** (no publisher/developer portal, self-service subscriptions, tiers, monetization, analytics). "APIM" here = gateway policies (enforce) + Thunder (identity) + Backstage (catalog). Apache APISIX is available as an ecosystem module if a richer gateway is wanted.
+
+**Gotchas (all fixed):**
+- Thunder `/applications` needs an admin token → get one as `openchoreo-system-app` **with `scope=system`** (plain token is `forbidden`).
+- kgateway's go-jose parser rejects Thunder's JWKS `x5t`/`x5c` fields → reduce JWKS to `kty,kid,use,alg,n,e`.
+- JWT config lives in a **`GatewayExtension`** (type JWT); the **`TrafficPolicy`** references it via `jwtAuth.extensionRef`; both go in the route's generated `dp-…` namespace.
+- Enforcement is at the gateway — test through it (port-forward `svc/gateway-default -n openchoreo-data-plane 19080`), not via a pod port-forward.
+- Bad policy config fails the route closed (500); check `trafficpolicy` status `Accepted=True` and `kgateway` controller logs.
+
+## 10. Phase 6 — DEV/QA/PROD + autoscaling
+
+**Part A+B done:** `qa` Environment + `authentic-photos-pipeline` (dev→qa→prod); Project repointed. The **same release** is bound to all three environments via ReleaseBindings, each overriding DB host/credentials and replica count. `verify-phase6.sh` confirms dev/qa/prod each report their own `APP_ENV` + `db:up`, prod at 2 replicas. Scripts: `deploy-phase6-envs.sh`, `promote-phase6.sh <qa|prod>`, `verify-phase6.sh`; manifests `openchoreo/environments/{qa,pipeline}.yaml`, `openchoreo/releasebindings/photos-api-{qa,prod}.yaml`.
+
+**Gotcha:** per-env env-var overrides go under `spec.workloadOverrides.container.env` as a **list of `{key,value}`** (a map is silently dropped). `componentTypeEnvironmentConfigs.replicas/resources` work as a nested object.
+
+**Part C (autoscaling) — pending run:** API has a demo `/alloc` endpoint; rebuild via CI, apply `api/openchoreo/hpa.yaml` (autoscaling/v2, memory 70% of 256Mi) with `deploy-hpa.sh`, drive it with `loadtest.sh`. Caveat: OpenChoreo's `renderedrelease-controller` manages replicas, so a hand-applied HPA may contend — the production-correct fix is a platform autoscaling Trait.
+
+## 11. Phase 5 (planned)
+
 - **Phase 5 — Web app + Thunder login.** Deploy the React app as `deployment/web-application`; wire OIDC authorization-code login to Thunder; browse + order end-to-end.
 - **Phase 6 — DEV/QA/PROD + autoscaling.** Add a `qa` Environment + dev→qa→prod DeploymentPipeline; per-env `ReleaseBinding` configs (each API env → its env DB); attach an HPA on memory + a load test to show scaling; promote across environments.
 

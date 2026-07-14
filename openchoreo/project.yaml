@@ -15,4 +15,4 @@ metadata:
 spec:
   deploymentPipelineRef:
     kind: DeploymentPipeline
-    name: default
+    name: authentic-photos-pipeline   # dev -> qa -> prod (was: default = dev -> staging -> prod)
