@@ -1,0 +1,24 @@
+# Workload descriptor for the web app (build-from-source). Endpoint + runtime config env.
+# WEB_CLIENT_ID / WEB_REDIRECT_URI are finalized in Stage 3 once the deployed URL + Thunder
+# client are known (via a ReleaseBinding override — no rebuild needed).
+apiVersion: openchoreo.dev/v1alpha1
+
+metadata:
+  name: photos-web-workload
+
+endpoints:
+  - name: web
+    port: 8080
+    type: HTTP
+    visibility:
+      - external
+
+configurations:
+  env:
+    - name: WEB_THUNDER_URL
+      value: "http://thunder.openchoreo.localhost:8080"
+    - name: WEB_CLIENT_ID
+      value: "authentic-photos-web"
+    - name: WEB_API_BASE
+      value: "http://development-default.openchoreoapis.localhost:19080/photos-api-api"
+    # WEB_REDIRECT_URI omitted -> the SPA defaults to <its own origin>/callback

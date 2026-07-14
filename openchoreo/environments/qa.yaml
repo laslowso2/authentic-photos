@@ -1,0 +1,13 @@
+# A new QA environment (copied from 'development'), targeting the same data plane.
+apiVersion: openchoreo.dev/v1alpha1
+kind: Environment
+metadata:
+  name: qa
+  namespace: default
+  annotations:
+    openchoreo.dev/display-name: "QA"
+spec:
+  dataPlaneRef:
+    kind: ClusterDataPlane
+    name: default
+  gateway: {}

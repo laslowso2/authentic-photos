@@ -1,0 +1,23 @@
+# A dev -> qa -> prod promotion pipeline (the DEV/QA/PROD path you asked for).
+# The Project references this instead of the built-in dev->staging->prod 'default'.
+apiVersion: openchoreo.dev/v1alpha1
+kind: DeploymentPipeline
+metadata:
+  name: authentic-photos-pipeline
+  namespace: default
+  annotations:
+    openchoreo.dev/display-name: "Authentic Photos Pipeline (dev -> qa -> prod)"
+spec:
+  promotionPaths:
+    - sourceEnvironmentRef:
+        kind: Environment
+        name: development
+      targetEnvironmentRefs:
+        - kind: Environment
+          name: qa
+    - sourceEnvironmentRef:
+        kind: Environment
+        name: qa
+      targetEnvironmentRefs:
+        - kind: Environment
+          name: production

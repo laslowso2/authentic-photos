@@ -1,0 +1,121 @@
+
+==================== 1. Environments (copy 'development' to make 'qa') ====================
+NAMESPACE   NAME          AGE
+default     development   63d
+default     production    63d
+default     staging       63d
+--- development env yaml (spec) ---
+spec:
+  dataPlaneRef:
+    kind: ClusterDataPlane
+    name: default
+  gateway: {}
+status:
+  conditions:
+  - lastTransitionTime: "2026-05-11T19:35:55Z"
+    message: Environment is ready
+    observedGeneration: 2
+    reason: EnvironmentReady
+    status: "True"
+    type: Ready
+
+==================== 2. DeploymentPipeline 'default' (copy to make development->qa->production) ====================
+spec:
+  promotionPaths:
+  - sourceEnvironmentRef:
+      kind: Environment
+      name: development
+    targetEnvironmentRefs:
+    - kind: Environment
+      name: staging
+  - sourceEnvironmentRef:
+      kind: Environment
+      name: staging
+    targetEnvironmentRefs:
+    - kind: Environment
+      name: production
+status:
+  conditions:
+  - lastTransitionTime: "2026-05-11T19:35:55Z"
+    message: DeploymentPipeline is available
+    observedGeneration: 1
+    reason: DeploymentPipelineAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 1
+
+==================== 3. Current ReleaseBinding for photos-api (releaseName + structure to model qa/prod) ====================
+NAME                           PROJECT            COMPONENT          ENVIRONMENT   AGE
+photos-api-development         authentic-photos   photos-api         development   20h
+spec:
+  environment: development
+  owner:
+    componentName: photos-api
+    projectName: authentic-photos
+  releaseName: photos-api-68448449cf
+  state: Active
+status:
+  conditions:
+  - lastTransitionTime: "2026-07-13T02:15:49Z"
+    message: No connections to resolve
+    observedGeneration: 2
+    reason: NoConnections
+    status: "True"
+    type: ConnectionsResolved
+  - lastTransitionTime: "2026-07-13T02:15:49Z"
+    message: 'Dataplane Release "photos-api-development" is up to date (observability
+      release skipped: no ObservabilityPlaneRef or no resources)'
+    observedGeneration: 2
+    reason: ReleaseSynced
+    status: "True"
+    type: ReleaseSynced
+  - lastTransitionTime: "2026-07-13T18:23:26Z"
+    message: ReleaseBinding is ready
+    observedGeneration: 2
+    reason: Ready
+    status: "True"
+    type: Ready
+  - lastTransitionTime: "2026-07-13T18:23:26Z"
+    message: Primary workload Deployment and all supporting resources are ready
+    observedGeneration: 2
+    reason: Ready
+    status: "True"
+    type: ResourcesReady
+  endpoints:
+  - externalURLs:
+      http:
+        host: development-default.openchoreoapis.localhost
+        path: /photos-api-api
+        port: 19080
+        scheme: http
+    name: api
+    serviceURL:
+      host: photos-api.dp-default-authentic-pho-development-7a487f8b.svc.cluster.local
+      port: 8080
+      scheme: http
+    type: HTTP
+  lastSpecUpdateTime: "2026-07-13T18:23:15Z"
+  observedGeneration: 2
+
+==================== 4. The API Deployment: name, replicas, memory requests (needed for HPA) ====================
+NAMESPACE                                       NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
+dp-default-authentic-pho-development-7a487f8b   photos-api-development-a774c39e         1/1     1            1           20h
+deployment: dp-default-authentic-pho-development-7a487f8b / photos-api-development-a774c39e
+replicas=1
+requests={"limits":{"cpu":"100m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}
+
+==================== 5. Autoscaling prerequisites ====================
+--- metrics-server present? ---
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+metrics-server   1/1     1            1           63d
+--- can we read live metrics? ---
+NAME                                               CPU(cores)   MEMORY(bytes)   
+photos-api-development-a774c39e-7f84cddd4b-rdl8g   1m           15Mi            
+--- HPA API version ---
+horizontalpodautoscalers                  hpa                  autoscaling/v2                            true         HorizontalPodAutoscaler
+
+==================== 6. Does OpenChoreo hardcode replicas? (HPA-vs-controller check) ====================
+renderedrelease-controller k3s
+(if a kgateway/openchoreo controller manages .spec.replicas, an HPA may conflict — we handle it)
+
+Done -> /Users/laslo/Documents/Claude/OpenChoreo/authentic-photos/phase6-output.txt. Share it back.

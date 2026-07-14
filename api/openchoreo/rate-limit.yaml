@@ -1,0 +1,23 @@
+# Phase 4c: local rate limiting on the Photos API route — 250 requests / minute.
+# "Local" = enforced per gateway instance via an Envoy token bucket (no external service).
+# Attached as a separate TrafficPolicy on the same HTTPRoute as the JWT policy (kgateway merges).
+# deploy-ratelimit.sh fills __NS__ / __ROUTE__.
+# NOTE: field names (rateLimit.local.tokenBucket.*) are kgateway's local rate-limit shape;
+# deploy-ratelimit.sh prints the live schema and server-dry-runs before applying, so any
+# mismatch is caught immediately.
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
+metadata:
+  name: photos-api-ratelimit
+  namespace: __NS__
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: __ROUTE__
+  rateLimit:
+    local:
+      tokenBucket:
+        maxTokens: 250          # bucket capacity (burst)
+        tokensPerFill: 250      # refill amount
+        fillInterval: 60s       # ...every 60s  => 250 req/min

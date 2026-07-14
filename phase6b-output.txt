@@ -1,0 +1,51 @@
+
+==================== 1. ReleaseBinding.spec top-level fields ====================
+  componentTypeEnvironmentConfigs	<Object>
+  environment	<string> -required-
+  owner	<Object> -required-
+  releaseName	<string>
+  state	<string>
+  enum: Active, Undeploy
+  traitEnvironmentConfigs	<map[string]Object>
+  workloadOverrides	<Object>
+
+==================== 2. workloadOverrides schema (full/recursive) ====================
+GROUP:      openchoreo.dev
+KIND:       ReleaseBinding
+VERSION:    v1alpha1
+
+FIELD: workloadOverrides <Object>
+
+
+DESCRIPTION:
+    WorkloadOverrides provides environment-specific overrides for the entire
+    workload spec
+    These values override the workload specification for this specific
+    environment
+    
+FIELDS:
+  container	<Object>
+    env	<[]Object>
+      key	<string> -required-
+      value	<string>
+      valueFrom	<Object>
+        secretKeyRef	<Object>
+          key	<string> -required-
+          name	<string> -required-
+    files	<[]Object>
+      key	<string> -required-
+      mountPath	<string> -required-
+      value	<string>
+      valueFrom	<Object>
+        secretKeyRef	<Object>
+          key	<string> -required-
+          name	<string> -required-
+
+
+==================== 3. What actually got stored on the qa binding (did it keep my map?) ====================
+{}
+
+==================== 4. For reference: how env looks in the Workload (key/value list) ====================
+[{"key":"PORT","value":"8080"},{"key":"APP_ENV","value":"development"},{"key":"DB_HOST","value":"mysql.authentic-photos-data-dev.svc.cluster.local"},{"key":"DB_PORT","value":"3306"},{"key":"DB_NAME","value":"authphotos"},{"key":"DB_USER","value":"authphotos_app"},{"key":"DB_PASSWORD","value":"dev-apppw-change-me"}]
+
+Done -> /Users/laslo/Documents/Claude/OpenChoreo/authentic-photos/phase6b-output.txt. Share it back and I'll fix the qa/prod bindings.

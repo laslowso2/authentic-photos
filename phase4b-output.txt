@@ -1,0 +1,345 @@
+
+==================== 1. Does kgateway TrafficPolicy support JWT? (full spec field list) ====================
+     apiKeyAuth	<Object>
+     autoHostRewrite	<boolean>
+     basicAuth	<Object>
+     buffer	<Object>
+     compression	<Object>
+     cors	<Object>
+     csrf	<Object>
+     extAuth	<Object>
+     extProc	<Object>
+     headerModifiers	<Object>
+     jwtAuth	<Object>
+     oauth2	<Object>
+     rateLimit	<Object>
+     rbac	<Object>
+     retry	<Object>
+     targetRefs	<[]Object>
+     targetSelectors	<[]Object>
+     timeouts	<Object>
+     transformation	<Object>
+     urlRewrite	<Object>
+--- explain jwt (if present) ---
+GROUP:      gateway.kgateway.dev
+KIND:       TrafficPolicy
+VERSION:    v1alpha1
+
+--- explain extAuth (fallback path) ---
+GROUP:      gateway.kgateway.dev
+KIND:       TrafficPolicy
+VERSION:    v1alpha1
+
+FIELD: extAuth <Object>
+
+
+DESCRIPTION:
+    ExtAuth specifies the external authentication configuration for the policy.
+    This controls what external server to send requests to for authentication.
+    
+FIELDS:
+  contextExtensions	<map[string]string>
+    Additional context for the auth service.
+
+  disable	<Object>
+    Disable all external auth filters.
+    Can be used to disable external auth policies applied at a higher level in
+    the config hierarchy.
+
+  extensionRef	<Object>
+    ExtensionRef references the GatewayExtension that should be used for auth.
+
+  withRequestBody	<Object>
+    WithRequestBody allows the request body to be buffered and sent to the auth
+    service.
+    Warning buffering has implications for streaming and therefore performance.
+
+
+
+==================== 2. Thunder JWKS (direct) ====================
+{"keys":[{"kid":"XfOuHN91uUsYMJk3G+cNjt/cQ3CaxHPX1jrUucr2WU4=","kty":"RSA","use":"sig","alg":"RS256","n":"o1zmFIUqYjnYQQOaEOPL_VTfq13-NNAXm3b1oeuIaJtKhzXor_TZOW0xeWpKnEu3Szr48MbMcLLT9ee9xcM6BZD0D3J4F1chlP45wGKxarFWfjIizR15hvt5zgeZaFYuqWcLgv9W-FqnXpsUhDKfZvfjGwQ6E48RC0ubUa9wi9_vsjOa-Sq7i77MioWvxMQI-NGE29lECOlQPk04vmGlnqUu_DKQI1qbGKvJReNgC9p8SStAH2i0s5y-PhUHy0QZkvk7MPagsmW0xwOslixdPOfnAbhhZooSC1rVklFvDR9NczQuqP8kYqOBZjxllSvEv_lFE6kcO8lQuYzvAwHbNQ","e":"AQAB","x5c":["MIIDSzCCAjOgAwIBAgIUON+Oshxs3we5X2yJmouqUz4fKHQwDQYJKoZIhvcNAQELBQAwNTENMAsGA1UECgwEV1NPMjEQMA4GA1UECwwHVGh1bmRlcjESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTI2MDMxNjIwNDg1MVoXDTI3MDMxNjIwNDg1MVowNTENMAsGA1UECgwEV1NPMjEQMA4GA1UECwwHVGh1bmRlcjESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo1zmFIUqYjnYQQOaEOPL/VTfq13+NNAXm3b1oeuIaJtKhzXor/TZOW0xeWpKnEu3Szr48MbMcLLT9ee9xcM6BZD0D3J4F1chlP45wGKxarFWfjIizR15hvt5zgeZaFYuqWcLgv9W+FqnXpsUhDKfZvfjGwQ6E48RC0ubUa9wi9/vsjOa+Sq7i77MioWvxMQI+NGE29lECOlQPk04vmGlnqUu/DKQI1qbGKvJReNgC9p8SStAH2i0s5y+PhUHy0QZkvk7MPagsmW0xwOslixdPOfnAbhhZooSC1rVklFvDR9NczQuqP8kYqOBZjxllSvEv/lFE6kcO8lQuYzvAwHbNQIDAQABo1MwUTAdBgNVHQ4EFgQUywOCkcEe74dk+CCcVlCfhEF5KA8wHwYDVR0jBBgwFoAUywOCkcEe74dk+CCcVlCfhEF5KA8wDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEARksn8Wx00xXL0AC8cH4JZkihfAvRkiWjWde/+PDJMsIWj6MDlh+ozl8pyJtgV2neqRdip9wFOZjEaeHGpS4wbqG2AYBVMk7petWwkL666Papsf4lgZ8citpEQcea3iNdoPUfo6okeNEnBp6kJvVeeDMeFsSeYuCfg1yuMjmVnBytjwIdAzyaPmvtueM7u4885l8hVsM3EAOTz7L/j4pV2s1h5hA1h39Wlon9Ixr6nvXubqzG/v0eKJofYsjC5cQ5PXZ99QBPoFTFLZFywCMA12vHS5qUar2YrEceIRQ5sKESmCpDVoqDONVMrSlXSl7xUT4PuORTkiUVaz4v9fXCZw=="],"x5t":"GgnulbsAsw80Y994iXQRxx40avQ=","x5t#S256":"XfOuHN91uUsYMJk3G+cNjt/cQ3CaxHPX1jrUucr2WU4="}]}
+
+
+==================== 3. Thunder app-registration method — bootstrap scripts (authoritative) ====================
+----------------- 52-default-apps.sh -----------------
+#!/bin/bash
+set -e
+
+THUNDER_URL="http://localhost:8090"
+
+log_info "Checking if application 'Customer Portal' already exists..."
+existing_apps=$(curl -s --max-time 10 "${THUNDER_URL}/applications")
+
+app_id=$(echo "$existing_apps" | tr '\n' ' ' | sed 's/" *: *"/":"/g' | grep -o '"client_id":"customer-portal-client"[^}]*"id":"[^"]*"\|"id":"[^"]*"[^}]*"client_id":"customer-portal-client"' | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+APP_PAYLOAD='{
+  "name": "Customer Portal",
+  "description": "Customer Portal Application",
+  "inbound_auth_config": [
+    {
+      "type": "oauth2",
+      "config": {
+        "client_id": "customer-portal-client",
+        "client_secret": "supersecret",
+        "grant_types": [
+          "client_credentials"
+        ],
+        "token_endpoint_auth_method": "client_secret_post",
+        "pkce_required": false,
+        "public_client": false,
+        "token": {
+          "access_token": {
+            "validity_period": 3600
+          }
+        }
+      }
+    }
+  ]
+}'
+
+if [ -n "$app_id" ]; then
+  log_info "Application 'Customer Portal' already exists (id: $app_id), updating..."
+  curl --location -X PUT "${THUNDER_URL}/applications/$app_id" \
+    --header 'Content-Type: application/json' \
+    --data "$APP_PAYLOAD" \
+    --fail-with-body \
+    --max-time 30 \
+    --retry 3 \
+    --retry-delay 5
+
+  log_info "Application updated successfully"
+else
+  log_info "Application 'Customer Portal' does not exist, creating..."
+  curl --location "${THUNDER_URL}/applications" \
+    --header 'Content-Type: application/json' \
+    --data "$APP_PAYLOAD" \
+    --fail-with-body \
+    --max-time 30 \
+    --retry 3 \
+    --retry-delay 5
+
+  log_info "Application created successfully"
+fi
+----------------- 57-service-mcp-app.sh -----------------
+#!/bin/bash
+set -e
+
+THUNDER_URL="http://localhost:8090"
+
+log_info "Checking if application 'Service MCP App' already exists..."
+existing_apps=$(curl -s --max-time 10 "${THUNDER_URL}/applications")
+
+# Extract application ID if it exists
+app_id=$(echo "$existing_apps" | tr '\n' ' ' | sed 's/" *: *"/":"/g' | grep -o '"name":"Service MCP App"[^}]*"id":"[^\"]*"\|"id":"[^\"]*"[^}]*"name":"Service MCP App"' | grep -o '"id":"[^\"]*"' | head -1 | cut -d'"' -f4)
+
+# Define the application payload
+APP_PAYLOAD='{
+    "name": "Service MCP App",
+    "description": "Service MCP app to be used by backend services which can securely store the secret",
+    "auth_flow_graph_id": "auth_flow_config_basic",
+    "inbound_auth_config": [
+        {
+            "type": "oauth2",
+            "config": {
+                "client_id": "service_mcp_client",
+                "client_secret": "service_mcp_client_secret",
+                "grant_types": [
+                    "client_credentials"
+                ],
+                "token_endpoint_auth_method": "client_secret_basic",
+                "token": {
+                    "access_token": {
+                        "validity_period": 86400
+                    }
+                }
+            }
+        }
+    ]
+}'
+
+if [ -n "$app_id" ]; then
+  log_info "Application 'Service MCP App' already exists (id: $app_id), updating..."
+  curl --location -X PUT "${THUNDER_URL}/applications/$app_id" \
+    --header 'Content-Type: application/json' \
+    --data "$APP_PAYLOAD" \
+    --fail-with-body \
+    --max-time 30 \
+    --retry 3 \
+    --retry-delay 5
+
+  log_info "Application updated successfully"
+else
+  log_info "Application does not exist, creating default application..."
+  curl --location "${THUNDER_URL}/applications" \
+    --header 'Content-Type: application/json' \
+    --data "$APP_PAYLOAD" \
+    --fail-with-body \
+    --max-time 30 \
+    --retry 3 \
+    --retry-delay 5
+
+  log_info "Service MCP App application created successfully"
+fi
+----------------- 55-system-app.sh -----------------
+#!/bin/bash
+set -e
+
+THUNDER_URL="http://localhost:8090"
+
+log_info "Checking if system application already exists..."
+existing_apps=$(curl -s --max-time 10 "${THUNDER_URL}/applications")
+
+app_id=$(echo "$existing_apps" | tr '\n' ' ' | sed 's/" *: *"/":"/g' | grep -o '"client_id":"openchoreo-system-app"[^}]*"id":"[^"]*"\|"id":"[^"]*"[^}]*"client_id":"openchoreo-system-app"' | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+APP_PAYLOAD='{
+  "name": "System Application",
+  "description": "Generic system application for automation and integrations",
+  "inbound_auth_config": [
+    {
+      "type": "oauth2",
+      "config": {
+        "client_id": "openchoreo-system-app",
+        "client_secret": "openchoreo-system-app-secret",
+        "grant_types": [
+          "client_credentials"
+        ],
+        "token_endpoint_auth_method": "client_secret_post",
+        "pkce_required": false,
+        "public_client": false,
+        "token": {
+          "access_token": {
+            "validity_period": 3600
+          }
+        }
+      }
+    }
+  ]
+}'
+
+if [ -n "$app_id" ]; then
+  log_info "System application already exists (id: $app_id), updating..."
+  curl --location -X PUT "${THUNDER_URL}/applications/$app_id" \
+    --header 'Content-Type: application/json' \
+    --data "$APP_PAYLOAD" \
+    --fail-with-body \
+    --max-time 30 \
+    --retry 3 \
+    --retry-delay 5
+
+  log_info "System application updated successfully"
+else
+  log_info "System application does not exist, creating..."
+  curl --location "${THUNDER_URL}/applications" \
+    --header 'Content-Type: application/json' \
+    --data "$APP_PAYLOAD" \
+    --fail-with-body \
+    --max-time 30 \
+    --retry 3 \
+    --retry-delay 5
+
+  log_info "System application created successfully"
+fi
+----------------- 54-cli-app.sh -----------------
+#!/bin/bash
+set -e
+
+THUNDER_URL="http://localhost:8090"
+
+log_info "Checking if application 'OpenChoreo CLI' already exists..."
+existing_apps=$(curl -s --max-time 10 "${THUNDER_URL}/applications")
+
+app_id=$(echo "$existing_apps" | tr '\n' ' ' | sed 's/" *: *"/":"/g' | grep -o '"name":"OpenChoreo CLI"[^}]*"id":"[^\"]*"\|"id":"[^\"]*"[^}]*"name":"OpenChoreo CLI"' | grep -o '"id":"[^\"]*"' | head -1 | cut -d'"' -f4)
+
+APP_PAYLOAD='{
+  "name": "OpenChoreo CLI",
+  "description": "OpenChoreo CLI Default Application",
+  "logo_url": "https://cdn.statically.io/gh/openchoreo/openchoreo.github.io@main/static/img/openchoreo-logo.png",
+  "allowed_user_types": ["openchoreo-user"],
+  "assertion": {
+    "validity_period": 3600
+  },
+  "inbound_auth_config": [
+    {
+      "type": "oauth2",
+      "config": {
+        "client_id": "openchoreo-cli",
+        "redirect_uris": [
+          "http://127.0.0.1:55152/auth-callback"
+        ],
+        "grant_types": [
+          "authorization_code", "refresh_token"
+        ],
+        "response_types": [
+          "code"
+        ],
+        "token_endpoint_auth_method": "none",
+        "pkce_required": true,
+        "public_client": true,
+        "token": {
+          "access_token": {
+            "validity_period": 3600,
+            "user_attributes": [
+              "given_name",
+              "family_name",
+              "username",
+              "groups"
+            ]
+          },
+          "id_token": {
+            "validity_period": 3600,
+            "user_attributes": [
+              "given_name",
+              "family_name",
+              "username",
+              "groups"
+            ]
+          }
+        },
+        "scope_claims": {
+          "email": [
+            "email"
+          ],
+          "groups": [
+            "groups"
+          ],
+          "profile": [
+            "username",
+            "given_name",
+            "family_name",
+            "picture",
+            "groups"
+          ]
+        }
+      }
+    }
+  ]
+}'
+
+if [ -n "$app_id" ]; then
+  log_info "Application 'OpenChoreo CLI' already exists (id: $app_id), updating..."
+  curl --location -X PUT "${THUNDER_URL}/applications/$app_id" \
+    --header 'Content-Type: application/json' \
+    --data "$APP_PAYLOAD" \
+    --fail-with-body \
+    --max-time 30 \
+    --retry 3 \
+    --retry-delay 5
+
+  log_info "Application updated successfully"
+else
+  log_info "Application does not exist, creating default CLI application..."
+  curl --location "${THUNDER_URL}/applications" \
+    --header 'Content-Type: application/json' \
+
+==================== 4. Thunder admin/bootstrap credentials (to call the app API) ====================
+NAME                            TYPE                 DATA   AGE
+sh.helm.release.v1.thunder.v1   helm.sh/release.v1   1      62d
+thunder-db-credentials          Opaque               3      62d
+gate_client:
+  password_hashing:
+
+==================== 5. Is DCR open? (registration endpoint expects what?) ====================
+registration_endpoint = http://thunder.openchoreo.localhost:8080/oauth2/dcr/register
+(not calling it yet — we decide auth method from the scripts above)
+
+Done -> /Users/laslo/Documents/Claude/OpenChoreo/authentic-photos/phase4b-output.txt. Share it back.

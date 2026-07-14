@@ -1,0 +1,28 @@
+# Promote the SAME release to QA, but point it at the QA database (config differs, code doesn't).
+# __RELEASE__ is filled by promote-phase6.sh with the current dev releaseName.
+apiVersion: openchoreo.dev/v1alpha1
+kind: ReleaseBinding
+metadata:
+  name: photos-api-qa
+  namespace: default
+spec:
+  owner:
+    projectName: authentic-photos
+    componentName: photos-api
+  environment: qa
+  releaseName: __RELEASE__
+  state: Active
+  componentTypeEnvironmentConfigs:
+    replicas: 1
+    resources:
+      requests: { cpu: "100m", memory: "256Mi" }
+      limits:   { cpu: "200m", memory: "384Mi" }
+  workloadOverrides:
+    container:
+      env:
+        - key: APP_ENV
+          value: "qa"
+        - key: DB_HOST
+          value: "mysql.authentic-photos-data-qa.svc.cluster.local"
+        - key: DB_PASSWORD
+          value: "qa-apppw-change-me"

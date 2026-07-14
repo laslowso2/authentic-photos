@@ -1,0 +1,86 @@
+{
+  "info": {
+    "name": "Authentic Photos API (OpenChoreo, per-env OAuth)",
+    "description": "Each environment has its own OAuth client and only accepts its own token. Run the Tokens requests first (they auto-store token_dev/token_qa/token_prod), then call each env. The Host header selects the environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:19080" },
+    { "key": "thunder", "value": "http://thunder.openchoreo.localhost:8080" },
+    { "key": "token_dev", "value": "" },
+    { "key": "token_qa", "value": "" },
+    { "key": "token_prod", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Tokens",
+      "item": [
+        {
+          "name": "Get DEV token",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j=pm.response.json(); if(j.access_token){pm.collectionVariables.set('token_dev', j.access_token);}" ] } } ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "basic", "basic": [ { "key": "username", "value": "photos-subscriber-dev" }, { "key": "password", "value": "photos-subscriber-dev-secret" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/x-www-form-urlencoded" } ],
+            "body": { "mode": "urlencoded", "urlencoded": [ { "key": "grant_type", "value": "client_credentials" } ] },
+            "url": { "raw": "{{thunder}}/oauth2/token" }
+          }
+        },
+        {
+          "name": "Get QA token",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j=pm.response.json(); if(j.access_token){pm.collectionVariables.set('token_qa', j.access_token);}" ] } } ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "basic", "basic": [ { "key": "username", "value": "photos-subscriber-qa" }, { "key": "password", "value": "photos-subscriber-qa-secret" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/x-www-form-urlencoded" } ],
+            "body": { "mode": "urlencoded", "urlencoded": [ { "key": "grant_type", "value": "client_credentials" } ] },
+            "url": { "raw": "{{thunder}}/oauth2/token" }
+          }
+        },
+        {
+          "name": "Get PROD token",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "var j=pm.response.json(); if(j.access_token){pm.collectionVariables.set('token_prod', j.access_token);}" ] } } ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "basic", "basic": [ { "key": "username", "value": "photos-subscriber-prod" }, { "key": "password", "value": "photos-subscriber-prod-secret" } ] },
+            "header": [ { "key": "Content-Type", "value": "application/x-www-form-urlencoded" } ],
+            "body": { "mode": "urlencoded", "urlencoded": [ { "key": "grant_type", "value": "client_credentials" } ] },
+            "url": { "raw": "{{thunder}}/oauth2/token" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "DEV /photos",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Host", "value": "development-default.openchoreoapis.localhost" }, { "key": "Authorization", "value": "Bearer {{token_dev}}" } ],
+        "url": { "raw": "{{baseUrl}}/photos-api-api/photos" }
+      }
+    },
+    {
+      "name": "QA /photos",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Host", "value": "qa-default.openchoreoapis.localhost" }, { "key": "Authorization", "value": "Bearer {{token_qa}}" } ],
+        "url": { "raw": "{{baseUrl}}/photos-api-api/photos" }
+      }
+    },
+    {
+      "name": "PROD /photos",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Host", "value": "production-default.openchoreoapis.localhost" }, { "key": "Authorization", "value": "Bearer {{token_prod}}" } ],
+        "url": { "raw": "{{baseUrl}}/photos-api-api/photos" }
+      }
+    },
+    {
+      "name": "PROD with DEV token (expect 401)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Host", "value": "production-default.openchoreoapis.localhost" }, { "key": "Authorization", "value": "Bearer {{token_dev}}" } ],
+        "url": { "raw": "{{baseUrl}}/photos-api-api/photos" }
+      }
+    }
+  ]
+}

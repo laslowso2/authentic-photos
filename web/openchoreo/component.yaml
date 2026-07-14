@@ -1,0 +1,30 @@
+# The web app as an OpenChoreo web-application Component, built from source (/web).
+# __GIT_URL__ is filled by deploy-web.sh.
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: photos-web
+  namespace: default
+  annotations:
+    openchoreo.dev/display-name: "Photos Web"
+    openchoreo.dev/description: "Customer web app — login (Thunder OIDC), browse, order"
+spec:
+  owner:
+    projectName: authentic-photos
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/web-application
+  autoDeploy: true
+  autoBuild: true
+  workflow:
+    kind: ClusterWorkflow
+    name: dockerfile-builder
+    parameters:
+      repository:
+        url: "__GIT_URL__"
+        revision:
+          branch: "main"
+        appPath: "/web"
+      docker:
+        context: "/web"
+        filePath: "/web/Dockerfile"

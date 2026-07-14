@@ -1,0 +1,75 @@
+
+==================== 1. What's IN the system-app token? (roles/scopes/claims) ====================
+{"aud":"openchoreo-system-app","client_id":"openchoreo-system-app","exp":1783977884,"grant_type":"client_credentials","iat":1783974284,"iss":"http://thunder.openchoreo.localhost:8080","jti":"019f5d27-4d26-7582-a00c-c10b8d1d3816","nbf":1783974284,"sub":"openchoreo-system-app"}
+
+==================== 2. Does requesting scope=system change the token / help? ====================
+{"access_token":"eyJhbGciOiJSUzI1NiIsImtpZCI6IlhmT3VITjkxdVVzWU1KazNHK2NOanQvY1EzQ2F4SFBYMWpyVXVjcjJXVTQ9IiwidHlwIjoiYXQrand0In0.eyJhdWQiOiJvcGVuY2hvcmVvLXN5c3RlbS1hcHAiLCJjbGllbnRfaWQiOiJvcGVuY2hvcmVvLXN5c3RlbS1hcHAiLCJleHAiOjE3ODM5Nzc4ODQsImdyYW50X3R5cGUiOiJjbGllbnRfY3JlZGVudGlhbHMiLCJpYXQiOjE3ODM5NzQyODQsImlzcyI6Imh0dHA6Ly90aHVuZGVyLm9wZW5jaG9yZW8ubG9jYWxob3N0OjgwODAiLCJqdGkiOiIwMTlmNWQyNy00ZDU0LTc2M2MtYTFjYy1jM2ViMDRmOWU4Y2EiLCJuYmYiOjE3ODM5NzQyODQsInNjb3BlIjoic3lzdGVtIiwic3ViIjoib3BlbmNob3Jlby1zeXN0ZW0tYXBwIn0.Kz_JeSyexgUMcjvWThS8ku26JovDQFMmUF_eKFsx9fjAu27a8oExImwm5StflJJMtlJ_ut4KI0LqD49Iuu_-Z2QwvNIHMJ7sbCJpM9YcX5f2ar-52JGkikC2X6SymLeMowFLtpO5dTk1d30wk3sipXxXysquzgHshOyIe7Hx8rer9q7-a18dLin48HYWH7wHt5BZe-dFd2EZamly0NCT2pvzZGivPD_kmdt-Y8JRxYyGRtgoUODdfcZCD_GdA_B7mi55GUMvQ6uhKhgXtWuloF5CIGQKRNrHVHnRq7s5rogaz5CBLjT1vlI1Z__kUPrbcP3NT4A2xzMuyLYOsQoNUg","token_type":"Bearer","expires_in":3600,"scope":"system"}
+
+
+==================== 3. Admin USER credentials for the Thunder console (from bootstrap 50-...) ====================
+      \"ouId\": \"$ORG_UNIT_ID\",
+        \"display\": \"username\"
+        \"username\": {
+          \"displayName\": \"Username\"
+        \"password\": {
+          \"displayName\": \"Password\"
+# Returns the ID of an existing user by username, or creates and returns it.
+# Usage: ensure_user <username> <password> <given_name> <family_name>
+  local username="$1" password="$2" given_name="$3" family_name="$4"
+  if echo "$existing_users" | grep -q "\"username\" *: *\"${username}\""; then
+    log_info "User '${username}' already exists, getting ID..." >&2
+      | grep -o "\"username\":\"${username}\"[^}]*\"id\":\"[^\"]*\"\|\"id\":\"[^\"]*\"[^}]*\"username\":\"${username}\"" \
+    log_info "Creating user '${username}'..." >&2
+          \"username\": \"${username}\",
+          \"email\": \"${username}\",
+          \"password\": \"${password}\",
+    log_info "User '${username}' created successfully" >&2
+# Creates a group with a single member if it does not already exist.
+# Usage: ensure_group <group_name> <description> <member_user_id>
+ensure_group() {
+  local group_name="$1" description="$2" member_id="$3"
+  local existing_groups group_members
+  existing_groups=$(curl -s --max-time 10 "${THUNDER_URL}/groups")
+  if echo "$existing_groups" | grep -q "\"name\" *: *\"${group_name}\""; then
+    log_info "Group '${group_name}' already exists, skipping creation"
+  group_members=""
+    group_members="{\"type\":\"user\",\"id\":\"${member_id}\"}"
+  log_info "Creating group '${group_name}'..."
+  curl --location "${THUNDER_URL}/groups" \
+      \"name\": \"${group_name}\",
+      \"members\": [${group_members}]
+  log_info "Group '${group_name}' created successfully"
+ADMIN_ID=$(ensure_user "admin@openchoreo.dev"            "Admin@123" "Admin"     "User")
+ensure_group "admins"             "Openchoreo Admins group"             "$ADMIN_ID"
+ensure_group "developers"         "Openchoreo Developers group"         "$DEVELOPER_ID"
+ensure_group "platform-engineers" "Openchoreo Platform Engineers group" "$PE_ID"
+ensure_group "sres"               "Openchoreo SREs group"               "$SRE_ID"
+
+==================== 4. How is app-management permission modeled? (grep bootstrap for scope/role/permission) ====================
+--- 55-system-app.sh ---
+--- 58-workload-publisher-app.sh ---
+--- 56-user-mcp-app.sh ---
+  "allowed_user_types": ["openchoreo-user"],
+            "scope_claims": {
+--- 53-rca-agent-client.sh ---
+
+==================== 5. kgateway jwtAuth schema (for the gateway policy) ====================
+GROUP:      gateway.kgateway.dev
+KIND:       TrafficPolicy
+VERSION:    v1alpha1
+
+FIELD: jwtAuth <Object>
+
+
+DESCRIPTION:
+    JWT specifies the JWT authentication configuration for the policy.
+    This defines the JWT providers and their configurations.
+    
+FIELDS:
+  disable	<Object>
+  extensionRef	<Object>
+    name	<string> -required-
+    namespace	<string>
+
+
+Done -> /Users/laslo/Documents/Claude/OpenChoreo/authentic-photos/phase4c-output.txt. Share it back.

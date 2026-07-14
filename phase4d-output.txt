@@ -1,0 +1,213 @@
+
+==================== 1. GatewayExtension schema (full) ====================
+GROUP:      gateway.kgateway.dev
+KIND:       GatewayExtension
+VERSION:    v1alpha1
+
+FIELD: spec <Object>
+
+
+DESCRIPTION:
+    GatewayExtensionSpec defines the desired state of GatewayExtension.
+    
+FIELDS:
+  extAuth	<Object>
+    clearRouteCache	<boolean>
+    failOpen	<boolean>
+    grpcService	<Object>
+      authority	<string>
+      backendRef	<Object> -required-
+        group	<string>
+        kind	<string>
+        name	<string> -required-
+        namespace	<string>
+        port	<integer>
+        weight	<integer>
+      requestTimeout	<string>
+      retry	<Object>
+        attempts	<integer>
+        backoff	<Object>
+          baseInterval	<string> -required-
+          maxInterval	<string>
+    headersToForward	<[]string>
+    httpService	<Object>
+      authorizationRequest	<Object>
+        headersToAdd	<map[string]string>
+      authorizationResponse	<Object>
+        headersToBackend	<[]string>
+      backendRef	<Object> -required-
+        group	<string>
+        kind	<string>
+        name	<string> -required-
+        namespace	<string>
+        port	<integer>
+        weight	<integer>
+      pathPrefix	<string>
+      requestTimeout	<string>
+      retry	<Object>
+        attempts	<integer>
+        backoff	<Object>
+          baseInterval	<string> -required-
+          maxInterval	<string>
+    statPrefix	<string>
+    statusOnError	<integer>
+    withRequestBody	<Object>
+      allowPartialMessage	<boolean>
+      maxRequestBytes	<integer> -required-
+      packAsBytes	<boolean>
+  extProc	<Object>
+    failOpen	<boolean>
+    grpcService	<Object> -required-
+      authority	<string>
+      backendRef	<Object> -required-
+        group	<string>
+        kind	<string>
+        name	<string> -required-
+        namespace	<string>
+        port	<integer>
+        weight	<integer>
+      requestTimeout	<string>
+      retry	<Object>
+        attempts	<integer>
+        backoff	<Object>
+          baseInterval	<string> -required-
+          maxInterval	<string>
+    maxMessageTimeout	<string>
+    messageTimeout	<string>
+    metadataOptions	<Object>
+      forwarding	<Object>
+        typed	<[]string>
+        untyped	<[]string>
+    processingMode	<Object>
+      requestBodyMode	<string>
+      enum: NONE, STREAMED, BUFFERED, BUFFERED_PARTIAL, ....
+      requestHeaderMode	<string>
+      enum: DEFAULT, SEND, SKIP
+      requestTrailerMode	<string>
+      enum: DEFAULT, SEND, SKIP
+      responseBodyMode	<string>
+      enum: NONE, STREAMED, BUFFERED, BUFFERED_PARTIAL, ....
+      responseHeaderMode	<string>
+      enum: DEFAULT, SEND, SKIP
+      responseTrailerMode	<string>
+      enum: DEFAULT, SEND, SKIP
+    routeCacheAction	<string>
+    enum: FromResponse, Clear, Retain
+    statPrefix	<string>
+  jwt	<Object>
+    providers	<[]Object>
+      audiences	<[]string>
+      claimsToHeaders	<[]Object>
+        header	<string> -required-
+        name	<string> -required-
+      forwardToken	<boolean>
+      issuer	<string>
+      jwks	<Object> -required-
+        local	<Object>
+          configMapRef	<Object>
+            name	<string>
+          inline	<string>
+        remote	<Object>
+          backendRef	<Object> -required-
+            group	<string>
+            kind	<string>
+            name	<string> -required-
+            namespace	<string>
+            port	<integer>
+          cacheDuration	<string>
+          url	<string> -required-
+      name	<string> -required-
+      tokenSource	<Object>
+        header	<Object>
+          header	<string> -required-
+          prefix	<string>
+        queryParameter	<string>
+    validationMode	<string>
+    enum: Strict, AllowMissing
+  oauth2	<Object>
+    authorizationEndpoint	<string>
+    backendRef	<Object> -required-
+      group	<string>
+      kind	<string>
+      name	<string> -required-
+      namespace	<string>
+      port	<integer>
+      weight	<integer>
+    cookies	<Object>
+      domain	<string>
+      names	<Object>
+        accessToken	<string>
+        idToken	<string>
+      sameSite	<string>
+      enum: Lax, Strict, None
+    credentials	<Object> -required-
+      clientID	<string> -required-
+      clientSecretRef	<Object> -required-
+        name	<string>
+    denyRedirect	<Object>
+      headers	<[]Object>
+        name	<string> -required-
+        type	<string>
+        enum: Exact, RegularExpression
+        value	<string> -required-
+    endSessionEndpoint	<string>
+    forwardAccessToken	<boolean>
+    issuerURI	<string>
+    logoutPath	<string>
+    redirectURI	<string>
+    scopes	<[]string>
+    tokenEndpoint	<string>
+  rateLimit	<Object>
+    domain	<string> -required-
+    failOpen	<boolean>
+    grpcService	<Object> -required-
+      authority	<string>
+      backendRef	<Object> -required-
+        group	<string>
+        kind	<string>
+        name	<string> -required-
+        namespace	<string>
+        port	<integer>
+        weight	<integer>
+      requestTimeout	<string>
+      retry	<Object>
+        attempts	<integer>
+        backoff	<Object>
+          baseInterval	<string> -required-
+          maxInterval	<string>
+    timeout	<string>
+    xRateLimitHeaders	<string>
+    enum: Off, DraftVersion03
+  type	<string>
+  enum: ExtAuth, ExtProc, RateLimit, JWT, ....
+
+
+==================== 2. Any existing GatewayExtensions to model? ====================
+apiVersion: v1
+items: []
+kind: List
+metadata:
+  resourceVersion: ""
+
+==================== 3. What kind does jwtAuth.extensionRef expect? ====================
+GROUP:      gateway.kgateway.dev
+KIND:       TrafficPolicy
+VERSION:    v1alpha1
+
+FIELD: extensionRef <Object>
+
+
+DESCRIPTION:
+    ExtensionRef references a GatewayExtension that provides the jwt providers
+    
+FIELDS:
+  name	<string> -required-
+    The name of the target resource.
+
+  namespace	<string>
+    The namespace of the target resource.
+    If not set, defaults to the namespace of the parent object.
+
+
+
+Done -> /Users/laslo/Documents/Claude/OpenChoreo/authentic-photos/phase4d-output.txt. Share it back.

@@ -1,0 +1,20 @@
+{
+  "name": "Photos API Subscriber",
+  "description": "External application that subscribes to the Authentic Photos API (machine-to-machine)",
+  "inbound_auth_config": [
+    {
+      "type": "oauth2",
+      "config": {
+        "client_id": "photos-subscriber",
+        "client_secret": "photos-subscriber-secret",
+        "grant_types": ["client_credentials"],
+        "token_endpoint_auth_method": "client_secret_basic",
+        "token": {
+          "access_token": {
+            "validity_period": 3600
+          }
+        }
+      }
+    }
+  ]
+}

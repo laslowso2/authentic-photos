@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="1040" viewBox="0 0 1220 1040" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrowg" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect width="1220" height="1040" fill="#ffffff"/>
+
+  <!-- Header -->
+  <text x="40" y="40" font-size="22" font-weight="700" fill="#0f172a">Authentic Photos — Reference Architecture (single environment)</text>
+  <text x="40" y="64" font-size="13" fill="#475569">Logical components and the protocols between them. Thunder IdP and metrics-server are shared across all environments. This is not a deployment diagram.</text>
+
+  <!-- Cluster boundary -->
+  <rect x="290" y="100" width="900" height="700" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="310" y="126" font-size="14" font-weight="700" fill="#334155">Kubernetes cluster (k3d)  ·  environment: development</text>
+
+  <!-- External subscriber -->
+  <rect x="40" y="150" width="210" height="130" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+  <text x="60" y="184" font-size="15" font-weight="700" fill="#334155">External Subscriber App</text>
+  <text x="60" y="207" font-size="12" fill="#475569">(3rd-party application)</text>
+  <text x="60" y="231" font-size="12" fill="#475569">holds client_id + secret</text>
+  <text x="60" y="249" font-size="12" fill="#475569">for its environment</text>
+
+  <!-- Shared platform zone -->
+  <rect x="315" y="150" width="855" height="120" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="330" y="171" font-size="12" font-weight="700" fill="#92400e">SHARED PLATFORM SERVICES (cluster-wide)</text>
+  <rect x="500" y="184" width="330" height="72" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="516" y="209" font-size="14" font-weight="700" fill="#92400e">Thunder — Identity Provider</text>
+  <text x="516" y="229" font-size="12" fill="#78350f">ns: thunder · OAuth2 / OIDC</text>
+  <text x="516" y="247" font-size="11" fill="#78350f">/oauth2/token · /oauth2/jwks · RS256</text>
+  <rect x="860" y="184" width="290" height="72" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="876" y="209" font-size="14" font-weight="700" fill="#92400e">metrics-server</text>
+  <text x="876" y="229" font-size="12" fill="#78350f">ns: kube-system</text>
+  <text x="876" y="247" font-size="11" fill="#78350f">pod memory metrics → HPA</text>
+
+  <!-- OpenChoreo-managed zone -->
+  <rect x="315" y="300" width="545" height="230" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="330" y="322" font-size="12" font-weight="700" fill="#3730a3">OPENCHOREO-MANAGED — Cell</text>
+  <text x="330" y="339" font-size="10.5" fill="#4338ca">ns: dp-default-authentic-pho-development · rendered from Component + Workload + ReleaseBinding</text>
+
+  <!-- Gateway -->
+  <rect x="335" y="352" width="230" height="158" rx="8" fill="#ffffff" stroke="#6366f1" stroke-width="2"/>
+  <text x="351" y="376" font-size="14" font-weight="700" fill="#3730a3">Data-plane Gateway</text>
+  <text x="351" y="395" font-size="11.5" fill="#4338ca">kgateway / Gateway API</text>
+  <text x="351" y="412" font-size="11.5" fill="#4338ca">HTTPRoute (Host-based)</text>
+  <rect x="351" y="424" width="200" height="72" rx="6" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="361" y="443" font-size="11.5" font-weight="700" fill="#166534">JWT enforcement (per-env)</text>
+  <text x="361" y="460" font-size="10.5" fill="#166534">TrafficPolicy.jwtAuth →</text>
+  <text x="361" y="475" font-size="10" fill="#166534">GatewayExtension</text>
+  <text x="361" y="488" font-size="10" fill="#166534">(issuer · audience · JWKS)</text>
+
+  <!-- API -->
+  <rect x="600" y="352" width="240" height="158" rx="8" fill="#ffffff" stroke="#6366f1" stroke-width="2"/>
+  <text x="616" y="376" font-size="14" font-weight="700" fill="#3730a3">API Service</text>
+  <text x="616" y="396" font-size="11.5" fill="#4338ca">Component: photos-api</text>
+  <text x="616" y="413" font-size="10.5" fill="#4338ca">ComponentType: deployment/service</text>
+  <text x="616" y="434" font-size="11.5" fill="#4338ca">Deployment (Node / TypeScript)</text>
+  <text x="616" y="451" font-size="11.5" fill="#4338ca">ClusterIP Service :8080</text>
+  <text x="616" y="472" font-size="10.5" fill="#4338ca">config injected per environment</text>
+  <text x="616" y="489" font-size="10.5" fill="#4338ca">(ReleaseBinding workloadOverrides)</text>
+
+  <!-- Pure Kubernetes zone -->
+  <rect x="880" y="300" width="290" height="430" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="896" y="322" font-size="11" font-weight="700" fill="#166534">PURE KUBERNETES (self-managed manifests)</text>
+
+  <!-- MySQL -->
+  <rect x="900" y="345" width="250" height="160" rx="8" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+  <text x="916" y="370" font-size="14" font-weight="700" fill="#166534">MySQL 8.4</text>
+  <text x="916" y="390" font-size="11.5" fill="#15803d">StatefulSet + Service :3306</text>
+  <text x="916" y="408" font-size="11.5" fill="#15803d">PVC (data) + Secret (credentials)</text>
+  <text x="916" y="429" font-size="11" fill="#15803d">ns: authentic-photos-</text>
+  <text x="916" y="444" font-size="11" fill="#15803d">data-development</text>
+  <text x="916" y="466" font-size="10.5" fill="#15803d">metadata-only photo store</text>
+  <text x="916" y="484" font-size="10.5" fill="#15803d">(deployed via kustomize overlay)</text>
+
+  <!-- HPA -->
+  <rect x="900" y="540" width="250" height="110" rx="8" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+  <text x="916" y="566" font-size="13.5" font-weight="700" fill="#166534">HorizontalPodAutoscaler</text>
+  <text x="916" y="586" font-size="11.5" fill="#15803d">memory 70% of request → 1..5</text>
+  <text x="916" y="604" font-size="11.5" fill="#15803d">targets the API Deployment</text>
+  <text x="916" y="624" font-size="10" fill="#b45309">(applied directly; may contend</text>
+  <text x="916" y="638" font-size="10" fill="#b45309">with OpenChoreo replica control)</text>
+
+  <!-- ===== Arrows ===== -->
+  <!-- 1 Subscriber -> Thunder -->
+  <line x1="250" y1="188" x2="497" y2="212" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <circle cx="372" cy="192" r="11" fill="#1e293b"/><text x="372" y="196" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+
+  <!-- 2 Subscriber -> Gateway -->
+  <path d="M250,255 C300,300 300,360 332,398" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <circle cx="285" cy="330" r="11" fill="#1e293b"/><text x="285" y="334" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+
+  <!-- 3 Thunder -> Gateway JWKS (deploy-time trust), dashed -->
+  <path d="M560,256 C520,300 480,360 456,420" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrowg)"/>
+  <circle cx="512" cy="340" r="11" fill="#64748b"/><text x="512" y="344" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+
+  <!-- 4 Gateway -> API -->
+  <line x1="565" y1="410" x2="597" y2="410" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <circle cx="581" cy="392" r="11" fill="#1e293b"/><text x="581" y="396" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+
+  <!-- 5 API -> MySQL -->
+  <line x1="840" y1="418" x2="897" y2="418" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <circle cx="869" cy="401" r="11" fill="#1e293b"/><text x="869" y="405" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">5</text>
+
+  <!-- 6 metrics-server -> HPA (dashed) and HPA -> API -->
+  <path d="M1005,256 L1005,538" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrowg)"/>
+  <path d="M900,585 C820,560 780,530 760,512" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <circle cx="1005" cy="410" r="11" fill="#64748b"/><text x="1005" y="414" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">6</text>
+
+  <!-- ===== Zone legend ===== -->
+  <rect x="40" y="812" width="14" height="14" rx="3" fill="#eef2ff" stroke="#6366f1"/>
+  <text x="60" y="824" font-size="12" fill="#334155">OpenChoreo-managed (rendered from OC abstractions)</text>
+  <rect x="420" y="812" width="14" height="14" rx="3" fill="#ecfdf5" stroke="#16a34a"/>
+  <text x="440" y="824" font-size="12" fill="#334155">Pure Kubernetes (manifests applied directly)</text>
+  <rect x="770" y="812" width="14" height="14" rx="3" fill="#fffbeb" stroke="#f59e0b"/>
+  <text x="790" y="824" font-size="12" fill="#334155">Shared platform service</text>
+  <rect x="1010" y="812" width="14" height="14" rx="3" fill="#f1f5f9" stroke="#64748b"/>
+  <text x="1030" y="824" font-size="12" fill="#334155">External</text>
+
+  <!-- ===== Flows panel ===== -->
+  <rect x="40" y="848" width="1140" height="176" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="56" y="872" font-size="13" font-weight="700" fill="#0f172a">Flows &amp; protocols</text>
+
+  <text x="56" y="898" font-size="11.5" fill="#334155"><tspan font-weight="700">1</tspan>  Subscriber → Thunder: OAuth2 client_credentials (HTTP POST /oauth2/token) → signed JWT (RS256), aud = client_id</text>
+  <text x="56" y="922" font-size="11.5" fill="#334155"><tspan font-weight="700">2</tspan>  Subscriber → Gateway: HTTP GET with Authorization: Bearer &lt;JWT&gt;; the Host header selects this environment's route</text>
+  <text x="56" y="946" font-size="11.5" fill="#334155"><tspan font-weight="700">3</tspan>  Gateway validates the JWT locally — signature via Thunder's JWKS (embedded at deploy) + issuer + per-env audience</text>
+  <text x="56" y="970" font-size="11.5" fill="#334155"><tspan font-weight="700">4</tspan>  Gateway → API Service: plain HTTP to the ClusterIP Service :8080 (in-cell, cluster-internal)</text>
+  <text x="56" y="994" font-size="11.5" fill="#334155"><tspan font-weight="700">5</tspan>  API → MySQL: MySQL wire protocol over TCP :3306, resolved by Kubernetes DNS; DB credentials injected as env vars</text>
+  <text x="56" y="1016" font-size="11.5" fill="#334155"><tspan font-weight="700">6</tspan>  HPA reads pod memory from metrics-server and scales the API Deployment (1 → 5 replicas)</text>
+</svg>

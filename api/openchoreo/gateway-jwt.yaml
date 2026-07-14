@@ -1,0 +1,42 @@
+# Phase 4: require a valid Thunder JWT on the Photos API's gateway route.
+# Two kgateway resources, placed in the API route's (generated) data-plane namespace.
+# deploy-phase4.sh fills __NS__, __ROUTE__, and __JWKS__ (fetched live from Thunder).
+#
+# 1) GatewayExtension holds the JWT provider config (issuer + audience + signing keys).
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: GatewayExtension
+metadata:
+  name: thunder-jwt
+  namespace: __NS__
+spec:
+  type: JWT
+  jwt:
+    validationMode: Strict
+    providers:
+      - name: thunder
+        issuer: "http://thunder.openchoreo.localhost:8080"
+        forwardToken: true              # pass the validated JWT through so the API can read the user (sub/email)
+        audiences:
+          - __AUD__                     # per-environment client_id (isolates envs)
+        tokenSource:
+          header:
+            header: Authorization
+            prefix: "Bearer "
+        jwks:
+          local:
+            inline: '__JWKS__'          # Thunder's public keys (RS256), injected at deploy time
+---
+# 2) TrafficPolicy attaches that JWT check to the Photos API HTTPRoute.
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
+metadata:
+  name: photos-api-jwt
+  namespace: __NS__
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: __ROUTE__
+  jwtAuth:
+    extensionRef:
+      name: thunder-jwt

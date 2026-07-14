@@ -1,0 +1,28 @@
+# Promote the SAME release to PRODUCTION: its own DB, more replicas, larger limits.
+# This is the "config changes between DEV/QA/PROD" story — one artifact, different binding.
+apiVersion: openchoreo.dev/v1alpha1
+kind: ReleaseBinding
+metadata:
+  name: photos-api-production
+  namespace: default
+spec:
+  owner:
+    projectName: authentic-photos
+    componentName: photos-api
+  environment: production
+  releaseName: __RELEASE__
+  state: Active
+  componentTypeEnvironmentConfigs:
+    replicas: 2                       # prod runs 2 replicas (dev/qa run 1)
+    resources:
+      requests: { cpu: "200m", memory: "384Mi" }
+      limits:   { cpu: "500m", memory: "512Mi" }
+  workloadOverrides:
+    container:
+      env:
+        - key: APP_ENV
+          value: "production"
+        - key: DB_HOST
+          value: "mysql.authentic-photos-data-prod.svc.cluster.local"
+        - key: DB_PASSWORD
+          value: "prod-apppw-change-me"

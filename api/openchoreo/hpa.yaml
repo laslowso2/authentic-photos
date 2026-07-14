@@ -1,0 +1,27 @@
+# Memory-based autoscaling for the (development) Photos API deployment.
+# Scales when average memory use exceeds 70% of the 256Mi request (~180Mi).
+# __NS__ / __DEPLOY__ are filled by deploy-hpa.sh (the generated data-plane deployment).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: photos-api-hpa
+  namespace: __NS__
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: __DEPLOY__
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0     # react quickly for the demo
+    scaleDown:
+      stabilizationWindowSeconds: 60
