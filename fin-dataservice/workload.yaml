@@ -1,0 +1,27 @@
+# Workload descriptor for the Ballerina DataService (built via the Ballerina buildpack).
+apiVersion: openchoreo.dev/v1alpha1
+
+metadata:
+  name: fin-dataservice-workload
+
+endpoints:
+  - name: reports
+    port: 8080
+    type: HTTP
+    visibility:
+      - external            # open for now; add OAuth when the finance app is built
+
+configurations:
+  env:
+    - name: PORT
+      value: "8080"
+    - name: DB_HOST
+      value: "mysql.authentic-photos-data-dev.svc.cluster.local"
+    - name: DB_PORT
+      value: "3306"
+    - name: DB_NAME
+      value: "findw"
+    - name: DB_USER
+      value: "authphotos_app"
+    - name: DB_PASSWORD
+      value: "dev-apppw-change-me"

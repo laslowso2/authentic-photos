@@ -1,0 +1,28 @@
+# The financial DataService as an OpenChoreo Component, built from source with the
+# NATIVE Ballerina buildpack (no Dockerfile) — the OC-idiomatic path, mirroring AAA.
+# __GIT_URL__ is filled by deploy-fin.sh.
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: fin-dataservice
+  namespace: default
+  annotations:
+    openchoreo.dev/display-name: "Financial DataService"
+    openchoreo.dev/description: "Ballerina DataService over the findw warehouse (finance reports)"
+spec:
+  owner:
+    projectName: authentic-photos
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/service
+  autoDeploy: true
+  autoBuild: true
+  workflow:
+    kind: ClusterWorkflow
+    name: ballerina-buildpack-builder
+    parameters:
+      repository:
+        url: "__GIT_URL__"
+        revision:
+          branch: "main"
+        appPath: "/fin-dataservice"

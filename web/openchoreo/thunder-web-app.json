@@ -1,0 +1,28 @@
+{
+  "name": "Authentic Photos Web",
+  "description": "Customer web app - OIDC Authorization Code + PKCE (public client)",
+  "auth_flow_graph_id": "auth_flow_config_basic",
+  "allowed_user_types": ["openchoreo-user"],
+  "inbound_auth_config": [
+    {
+      "type": "oauth2",
+      "config": {
+        "client_id": "authentic-photos-web",
+        "redirect_uris": ["__REDIRECT__"],
+        "grant_types": ["authorization_code", "refresh_token"],
+        "response_types": ["code"],
+        "token_endpoint_auth_method": "none",
+        "pkce_required": true,
+        "public_client": true,
+        "token": {
+          "access_token": { "validity_period": 3600, "user_attributes": ["given_name", "family_name", "username", "email", "groups"] },
+          "id_token": { "validity_period": 3600, "user_attributes": ["given_name", "family_name", "username", "email", "groups"] }
+        },
+        "scope_claims": {
+          "email": ["email"],
+          "profile": ["username", "given_name", "family_name", "groups"]
+        }
+      }
+    }
+  ]
+}

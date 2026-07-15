@@ -17,7 +17,8 @@ spec:
         issuer: "http://thunder.openchoreo.localhost:8080"
         forwardToken: true              # pass the validated JWT through so the API can read the user (sub/email)
         audiences:
-          - __AUD__                     # per-environment client_id (isolates envs)
+          - __AUD__                     # per-environment machine subscriber (isolates envs)
+          - authentic-photos-web        # the web app's USER tokens (Phase 5 login)
         tokenSource:
           header:
             header: Authorization

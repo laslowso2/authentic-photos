@@ -4,7 +4,7 @@
 Everything is here: architecture, the facts about this specific cluster, every command, every script, and every file's full contents (Appendix B). If you delete the folder, you can rebuild it from this document alone.
 
 - **Last updated:** for OpenChoreo v1.1.x on local k3d (Colima).
-- **What's built so far:** Phase 0 (discovery), Phase 1 (Project + MySQL per env), Phase 2 (Node/TS API), Phase 3 (CI from Git — OpenChoreo builds & deploys), Phase 4 (OAuth-protected API + external subscription), Phase 6 Part A+B (qa env, dev→qa→prod pipeline, same release promoted across dev/qa/prod with per-env DB + replicas). Phase 4c (local rate limiting, 250 req/min) DONE. Remaining: Phase 6 Part C (autoscaling), Phase 5 (web app + login).
+- **What's built so far:** Phase 0 (discovery), Phase 1 (Project + MySQL per env), Phase 2 (Node/TS API), Phase 3 (CI from Git — OpenChoreo builds & deploys), Phase 4 (OAuth-protected API + external subscription), Phase 6 Part A+B (qa env, dev→qa→prod pipeline, same release promoted across dev/qa/prod with per-env DB + replicas). Phase 4c (local rate limiting, 250 req/min) DONE. Phase 5 (React web app + Thunder user login) DONE. Remaining: Phase 6 Part C (autoscaling run).
 - **Delivery model:** manifests + code + scripts live in `~/Documents/Claude/OpenChoreo/authentic-photos/`. You run the commands against your own cluster.
 
 ---
@@ -201,9 +201,21 @@ Scripts: `register-subscriber.sh`, `get-token.sh`, `deploy-phase4.sh`, `test-pha
 
 **Part C (autoscaling) — pending run:** API has a demo `/alloc` endpoint; rebuild via CI, apply `api/openchoreo/hpa.yaml` (autoscaling/v2, memory 70% of 256Mi) with `deploy-hpa.sh`, drive it with `loadtest.sh`. Caveat: OpenChoreo's `renderedrelease-controller` manages replicas, so a hand-applied HPA may contend — the production-correct fix is a platform autoscaling Trait.
 
-## 11. Phase 5 (planned)
+## 11. Phase 5 — Web app + Thunder user login (DONE)
 
-- **Phase 5 — Web app + Thunder login.** Deploy the React app as `deployment/web-application`; wire OIDC authorization-code login to Thunder; browse + order end-to-end.
+React SPA (`web/`) with **OIDC Authorization Code + PKCE** login via Thunder, browse, and order → license. Deployed as a `deployment/web-application` component (built from source). Flow verified end-to-end: login as `admin@openchoreo.dev` → catalogue loads via the API with the **user** token → orders issue licenses.
+
+Stages/scripts: API order endpoints (`api/src/index.ts`: `/me`, `POST /orders`, `GET /orders`) + `test-orders.sh`; `deploy-web.sh` (build+deploy SPA); `register-web-client.sh` (Thunder PKCE client); `deploy-cors.sh` (API CORS); `fix-thunder-cors.sh` (Thunder CORS).
+
+**Gotchas (all real, all fixed):**
+- **Backend can't see the user** → the gateway strips the token after validating. Set **`forwardToken: true`** on the JWT provider (`gateway-jwt.yaml`) so the API can decode `sub`/`email`.
+- **User tokens rejected (403)** → the API JWT policy only allowed the machine audience. Add the web client_id (`authentic-photos-web`) to the route's **audiences** and re-run `deploy-phase4.sh`.
+- **Browser → API cross-origin** → add a **CORS `TrafficPolicy`** on the API route for the web origin (`deploy-cors.sh`).
+- **Login button does nothing / discovery blocked** → the SPA fetches Thunder's `.well-known` + `/oauth2/token` cross-origin; Thunder's `cors.allowed_origins` must include the web origin. Patch `thunder-config-map` + restart Thunder (`fix-thunder-cors.sh`). Careful with quote-escaping when scripting the configmap edit.
+- **Browser host resolution** → add the web + API + thunder hostnames to `/etc/hosts` (→ 127.0.0.1); gateway is on `:19080` (data plane) / `:8080` (control plane, Thunder).
+- SPA runtime config is injected via `/config.js` from env at container start, so the same image works per environment.
+
+## 12. Remaining Deploy the React app as `deployment/web-application`; wire OIDC authorization-code login to Thunder; browse + order end-to-end.
 - **Phase 6 — DEV/QA/PROD + autoscaling.** Add a `qa` Environment + dev→qa→prod DeploymentPipeline; per-env `ReleaseBinding` configs (each API env → its env DB); attach an HPA on memory + a load test to show scaling; promote across environments.
 
 ---

@@ -1,0 +1,17 @@
+# Phase 5 Stage 3: allow the browser SPA (web app origin) to call the API cross-origin.
+# Attached as another TrafficPolicy on the API route. deploy-cors.sh fills __NS__/__ROUTE__/__ORIGIN__.
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
+metadata:
+  name: photos-api-cors
+  namespace: __NS__
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: __ROUTE__
+  cors:
+    allowOrigins:
+      - "__ORIGIN__"
+    allowMethods: ["GET", "POST", "OPTIONS"]
+    allowHeaders: ["Authorization", "Content-Type"]
