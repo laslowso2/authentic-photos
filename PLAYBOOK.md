@@ -215,6 +215,10 @@ Stages/scripts: API order endpoints (`api/src/index.ts`: `/me`, `POST /orders`, 
 - **Browser host resolution** → add the web + API + thunder hostnames to `/etc/hosts` (→ 127.0.0.1); gateway is on `:19080` (data plane) / `:8080` (control plane, Thunder).
 - SPA runtime config is injected via `/config.js` from env at container start, so the same image works per environment.
 
+## 12b. Add-on — Financial DataService (Ballerina) (DONE)
+
+A **Ballerina** service exposing financial reports over a separate **`findw`** star-schema warehouse (`dim_date`, `dim_photo`, `fact_sales`; ~500 sales / ~$27k seeded) in the same dev MySQL. Built by OpenChoreo's **native Ballerina buildpack** (`ballerina-buildpack-builder`) — compiled and ran first try. Endpoints: `/reports/{health,summary,revenueByMonth,topPhotos,revenueByLicense}`. Open (no OAuth yet). Files: `findw/*.sql`, `apply-findw.sh`, `fin-dataservice/` (Ballerina.toml, service.bal, workload.yaml, openchoreo/), `deploy-fin.sh`, `test-fin.sh`. **Doubles as the proof for the AAA "WSO2 DataService → Ballerina" migration pattern.**
+
 ## 12. Remaining Deploy the React app as `deployment/web-application`; wire OIDC authorization-code login to Thunder; browse + order end-to-end.
 - **Phase 6 — DEV/QA/PROD + autoscaling.** Add a `qa` Environment + dev→qa→prod DeploymentPipeline; per-env `ReleaseBinding` configs (each API env → its env DB); attach an HPA on memory + a load test to show scaling; promote across environments.
 

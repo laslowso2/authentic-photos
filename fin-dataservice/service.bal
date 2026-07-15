@@ -71,6 +71,28 @@ service /reports on new http:Listener(servicePort) {
         return collect(rs, "top_photos");
     }
 
+    // Revenue per photographer (optionally for a given year+month) — feeds royalty payouts.
+    resource function get revenueByPhotographer(int? year, int? month) returns json|error {
+        sql:ParameterizedQuery q;
+        if year is int && month is int {
+            q = `SELECT p.photographer AS photographer,
+                        ROUND(SUM(f.amount_cents)/100, 2) AS revenue, COUNT(*) AS sales
+                 FROM fact_sales f
+                 JOIN dim_photo p ON p.photo_id = f.photo_id
+                 JOIN dim_date  d ON d.date_key = f.date_key
+                 WHERE d.year = ${year} AND d.month = ${month}
+                 GROUP BY p.photographer ORDER BY revenue DESC`;
+        } else {
+            q = `SELECT p.photographer AS photographer,
+                        ROUND(SUM(f.amount_cents)/100, 2) AS revenue, COUNT(*) AS sales
+                 FROM fact_sales f
+                 JOIN dim_photo p ON p.photo_id = f.photo_id
+                 GROUP BY p.photographer ORDER BY revenue DESC`;
+        }
+        stream<record {}, sql:Error?> rs = dw->query(q);
+        return collect(rs, "revenue_by_photographer");
+    }
+
     // Revenue split by license type.
     resource function get revenueByLicense() returns json|error {
         stream<record {}, sql:Error?> rs = dw->query(`
