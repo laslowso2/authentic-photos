@@ -41,6 +41,19 @@ CREATE TABLE IF NOT EXISTS fact_sales (
   CONSTRAINT fk_fs_photo FOREIGN KEY (photo_id) REFERENCES dim_photo(photo_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Let the app user (used by the Ballerina service) read/write the warehouse.
+-- Royalty payouts written by the consumer worker (the async message-processor half).
+CREATE TABLE IF NOT EXISTS payouts (
+  id            BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  photographer  VARCHAR(150) NOT NULL,
+  period        VARCHAR(7)   NOT NULL,            -- 'YYYY-MM' or 'all'
+  revenue_cents INT          NOT NULL,
+  royalty_cents INT          NOT NULL,
+  royalty_rate  DECIMAL(4,3) NOT NULL,
+  status        VARCHAR(20)  NOT NULL DEFAULT 'paid',
+  created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_payouts_period (period)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Let the app user (used by the Ballerina services) read/write the warehouse.
 GRANT ALL PRIVILEGES ON findw.* TO 'authphotos_app'@'%';
 FLUSH PRIVILEGES;

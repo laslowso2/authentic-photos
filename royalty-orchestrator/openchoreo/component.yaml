@@ -1,0 +1,25 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: royalty-orchestrator
+  namespace: default
+  annotations:
+    openchoreo.dev/display-name: "Royalty Orchestrator"
+    openchoreo.dev/description: "Ballerina orchestration: DataService -> royalties -> RabbitMQ"
+spec:
+  owner:
+    projectName: authentic-photos
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/service
+  autoDeploy: true
+  autoBuild: true
+  workflow:
+    kind: ClusterWorkflow
+    name: ballerina-buildpack-builder
+    parameters:
+      repository:
+        url: "__GIT_URL__"
+        revision:
+          branch: "main"
+        appPath: "/royalty-orchestrator"

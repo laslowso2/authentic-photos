@@ -10,9 +10,11 @@ echo "route=$ROUTE host=$HOST prefix=$PREFIX"
 kubectl port-forward -n openchoreo-data-plane svc/gateway-default 19080:19080 >/tmp/gw-pf.log 2>&1 &
 PF=$!; trap 'kill $PF 2>/dev/null' EXIT; sleep 4
 
-for ep in health summary revenueByMonth topPhotos revenueByLicense; do
+for ep in health summary revenueByMonth topPhotos revenueByLicense revenueByPhotographer; do
   echo "--- GET /reports/$ep ---"
   curl -s -H "Host: $HOST" "http://localhost:19080${PREFIX}/reports/$ep"; echo
 done
+echo "--- GET /reports/revenueByPhotographer?year=2026&month=6 ---"
+curl -s -H "Host: $HOST" "http://localhost:19080${PREFIX}/reports/revenueByPhotographer?year=2026&month=6"; echo
 echo
-echo "Expect JSON reports (summary totals, monthly revenue trend, top photos, license split)."
+echo "revenueByPhotographer returning data => the rebuild landed (it feeds the royalty orchestrator)."

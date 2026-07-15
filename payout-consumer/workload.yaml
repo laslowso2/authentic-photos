@@ -1,0 +1,26 @@
+apiVersion: openchoreo.dev/v1alpha1
+
+metadata:
+  name: payout-consumer-workload
+
+# A worker: no HTTP endpoint. It consumes RabbitMQ and writes to the warehouse.
+configurations:
+  env:
+    - name: MQ_HOST
+      value: "rabbitmq.authentic-photos-mq-dev.svc.cluster.local"
+    - name: MQ_PORT
+      value: "5672"
+    - name: MQ_USER
+      value: "authphotos_mq"
+    - name: MQ_PASS
+      value: "dev-mqpw-change-me"
+    - name: DB_HOST
+      value: "mysql.authentic-photos-data-dev.svc.cluster.local"
+    - name: DB_PORT
+      value: "3306"
+    - name: DB_NAME
+      value: "findw"
+    - name: DB_USER
+      value: "authphotos_app"
+    - name: DB_PASSWORD
+      value: "dev-apppw-change-me"

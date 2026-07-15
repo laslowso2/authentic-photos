@@ -1,0 +1,30 @@
+apiVersion: openchoreo.dev/v1alpha1
+
+metadata:
+  name: royalty-orchestrator-workload
+
+endpoints:
+  - name: orchestrator
+    port: 8080
+    type: HTTP
+    visibility:
+      - external
+
+configurations:
+  env:
+    - name: PORT
+      value: "8080"
+    - name: DATASERVICE_URL
+      value: "http://fin-dataservice:8080"        # in-cell service-to-service call
+    - name: ROYALTY_RATE
+      value: "0.30"
+    - name: PAYOUT_QUEUE
+      value: "royalty.payouts"
+    - name: MQ_HOST
+      value: "rabbitmq.authentic-photos-mq-dev.svc.cluster.local"
+    - name: MQ_PORT
+      value: "5672"
+    - name: MQ_USER
+      value: "authphotos_mq"
+    - name: MQ_PASS
+      value: "dev-mqpw-change-me"

@@ -1,0 +1,18 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: WorkflowRun
+metadata:
+  name: __RUN_NAME__
+  namespace: default
+  labels:
+    openchoreo.dev/project: "authentic-photos"
+    openchoreo.dev/component: "royalty-orchestrator"
+spec:
+  workflow:
+    kind: ClusterWorkflow
+    name: ballerina-buildpack-builder
+    parameters:
+      repository:
+        url: "__GIT_URL__"
+        revision:
+          branch: "main"
+        appPath: "/royalty-orchestrator"

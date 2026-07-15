@@ -1,0 +1,25 @@
+apiVersion: openchoreo.dev/v1alpha1
+kind: Component
+metadata:
+  name: payout-consumer
+  namespace: default
+  annotations:
+    openchoreo.dev/display-name: "Payout Consumer"
+    openchoreo.dev/description: "Ballerina worker: consumes RabbitMQ payouts -> findw.payouts"
+spec:
+  owner:
+    projectName: authentic-photos
+  componentType:
+    kind: ClusterComponentType
+    name: deployment/worker          # no exposed endpoint
+  autoDeploy: true
+  autoBuild: true
+  workflow:
+    kind: ClusterWorkflow
+    name: ballerina-buildpack-builder
+    parameters:
+      repository:
+        url: "__GIT_URL__"
+        revision:
+          branch: "main"
+        appPath: "/payout-consumer"

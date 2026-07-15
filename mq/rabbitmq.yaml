@@ -1,0 +1,59 @@
+# RabbitMQ in-cluster (dev) — plain Kubernetes, like our MySQL.
+# In AAA this is Azure-managed; here we run a small instance to prove the same async pattern.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: authentic-photos-mq-dev
+  labels:
+    app.kubernetes.io/part-of: authentic-photos
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-credentials
+  namespace: authentic-photos-mq-dev
+type: Opaque
+stringData:
+  RABBITMQ_DEFAULT_USER: "authphotos_mq"
+  RABBITMQ_DEFAULT_PASS: "dev-mqpw-change-me"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: authentic-photos-mq-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: rabbitmq }
+  template:
+    metadata:
+      labels: { app: rabbitmq }
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3.13-management-alpine
+          ports:
+            - { name: amqp, containerPort: 5672 }
+            - { name: mgmt, containerPort: 15672 }
+          envFrom:
+            - secretRef: { name: rabbitmq-credentials }
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          readinessProbe:
+            exec: { command: ["rabbitmq-diagnostics", "-q", "ping"] }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: authentic-photos-mq-dev
+spec:
+  selector: { app: rabbitmq }
+  ports:
+    - { name: amqp, port: 5672,  targetPort: 5672 }
+    - { name: mgmt, port: 15672, targetPort: 15672 }
